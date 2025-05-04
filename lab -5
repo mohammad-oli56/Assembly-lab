@@ -1,0 +1,64 @@
+.MODEL SMALL  
+.STACK 100H  
+
+.DATA  
+    ; ------------------------------  
+    ; Data Segment Initialization  
+    ; ------------------------------  
+    MSG DB 0DH,0AH, 'ENTER THE STRING : > : $'  ; Message prompt for input  
+    MSG2 DB 0DH,0AH, 'YOUR STRING IS : > :$'  ; Message prompt for output  
+    STR1 DB 255 DUP(?)  ; Buffer to store the input string  
+    ONE DB ?  ; Unused variable  
+    TWO DB ?  ; Unused variable  
+
+.CODE  
+
+BEGIN:  
+    ; ------------------------------  
+    ; Initialize Data Segment  
+    ; ------------------------------  
+    MOV AX,@DATA  ; Load data segment  
+    MOV DS,AX  
+
+    ; ------------------------------  
+    ; Display Input Message  
+    ; ------------------------------  
+    LEA DX,MSG  
+    MOV AH,09H  
+    INT 21H  
+
+    ; ------------------------------  
+    ; Prepare to Read Input  
+    ; ------------------------------  
+    LEA SI,STR1  ; Load address of input buffer  
+    MOV AH,01H  ; DOS function to take single character input  
+
+READ:  
+    INT 21H  ; Read character  
+    MOV BL,AL  ; Store input character in BL  
+    CMP AL,0DH  ; Check if Enter key (carriage return) is pressed  
+    JE DISPLAY  ; If yes, jump to display  
+    XOR AL,20H  ; Convert lowercase to uppercase (basic case toggle)  
+    MOV [SI],AL  ; Store modified character in buffer  
+    INC SI  ; Move to next position in buffer  
+    JMP READ  ; Repeat reading process  
+
+DISPLAY:  
+    ; ------------------------------  
+    ; Display Stored Input  
+    ; ------------------------------  
+    MOV AL,'$'  ; End string with '$' for proper output  
+    MOV [SI],AL  
+    LEA DX,MSG2  ; Load output message  
+    MOV AH,09H  
+    INT 21H  
+
+    ; Display the stored input string  
+    LEA DX,STR1  
+    MOV AH,09H  
+    INT 21H   
+ 
+.EXIT 
+    MOV AH,4CH  ; Program termination 
+    INT 21H  
+END BEGIN
